@@ -3,11 +3,14 @@ var express = require('express'),
 	passport = require('passport'),
 	chat = require('./chat-server'),
 	database = require('./database'),
+	redisStore = require('./redis-store'),
 	config = require('./config'),
 	routes = require('./routes/api'),
 	TurfApiApp = express();
 
 database.initialize();
+
+redisStore.initialize();
 
 TurfApiApp.configure(function() {
 	TurfApiApp.use(express.logger('dev'));

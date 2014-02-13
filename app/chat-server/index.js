@@ -1,26 +1,26 @@
 var _ = require('lodash'),
-	uuid = require('node-uuid'),
-	database = require('../database'),
 	io = require('socket.io');
+	redis = require('../redis-store'),
+	database = require('../database'),
+	Users = require('../models/users');
 
 module.exports = function(server) {
-	var rooms = { },
-		users = { };
+	var rooms = [];
 
 	module.exports.server = server;
 	io = io.listen(server);
 
 	io.sockets.on('connection', function(socket) {
-		// Client will send server desired username.
-		// Send back a uuid for the client to use
+		// Connect message should come after a successful login.
+		// Client should have their user id and access token to give.
 		socket.on('connect_', function(data) {
-			// When a client connects, hand them a unique id to use for their session.
-			// Add the client to users map. TODO: Add redis to store users and rooms?
-			// Should also verify their username here too.
-			var newuuid = uuid.v4();
-			console.log("Creating uuid: " + newuuid);
-			socket.emit('connect_', {
-				uid: newuuid
+			console.log('recv connect_');
+			Users.get(data.uid).then(function(user) {
+				redis.client.hset('online_users', user.id, JSON.stringify(user), function(err, rsp) {
+					console.log('Stored ' + user.id + ' in online_users hash');
+				});
+			}).error(function(err) {
+				console.log(err);
 			});
 		});
 

@@ -68,6 +68,7 @@ describe('Routing', function() {
 					.end(function(err, res) {
 						res.body.should.have.property('uid');
 						res.body.should.have.property('username');
+						res.body.should.have.property('token');
 						res.body.uid.should.equal('eyANmDM5t');
 						res.body.username.should.equal('Lithica');
 						done();

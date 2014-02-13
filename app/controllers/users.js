@@ -27,6 +27,9 @@ module.exports = {
 		});
 	},
 
+	/*
+		On successful login, hand client their user id, username, and access token
+	*/
 	login: function(req, res) {
 		if (typeof req.param('username') === 'undefined' || typeof req.param('password') === 'undefined') {
 			res.send(400);
