@@ -1,24 +1,39 @@
-var database = require('../database');
+var groups = require('../models/groups');
 
 var GroupsController = {
-	getValidGroups: function(req, res) {
-		console.log('getValidGroups');
-		var userPosition = {
-			latitude: req.query.position.latitude,
-			longitude: req.query.position.longitude
-		};
-		console.log("Req position from: " + userPosition);
-		database.connection.query('SELECT * FROM groups', function(err, data) {
-			if (!err) {
-				var validGroups = [];
-				_.forEach(data, function(group) {
-					if (haversineDistance(userPosition, { latitude: group.latitude, longitude: group.longitude })) {
-						validGroups.push(group);
-					}
-				});
+	getGroup: function(req, res) {
+		var groupId = req.params.id;
+		if (typeof groupId === 'undefined') {
+			res.send(400);
+			return;
+		}
 
-				res.json(validGroups);
-			}
+		groups.getGroup(groupId).then(function(data) {
+			console.log('Got group ' + groupId);
+			res.json(200, data);
+		}).catch(function(err) {
+			res.send(400);
+			return;
+		});
+	},
+
+	getValidGroups: function(req, res) {
+		// Send 400 error code if no position is given.
+		if (typeof req.body.position === 'undefined') {
+			res.send(400);
+			return;
+		}
+
+		var userPosition = {
+			latitude: req.body.position.latitude,
+			longitude: req.body.position.longitude
+		};
+		groups.getValidGroups(userPosition).then(function(data) {
+			console.log('Finished getting all valid groups');
+			res.json(200, data);
+		}).catch(function(e) {
+			res.send(400);
+			return;
 		});
 	}
 };

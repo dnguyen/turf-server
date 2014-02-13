@@ -1,15 +1,19 @@
 var express = require('express'),
 	_ = require('lodash'),
-	mysql = require('mysql'),
+	database = require('./database'),
 	config = require('./config'),
 	routes = require('./routes/api'),
 	TurfApiApp = express();
 
-connection = mysql.createConnection(config.database);
+database.initialize();
+
+TurfApiApp.use(express.json());
+TurfApiApp.use(express.urlencoded());
 
 var server = TurfApiApp.listen(config.port);
 var io = require('socket.io').listen(server);
 var groupChatRooms = { };
+
 
 
 function userExistsInRoom(room, username) {
@@ -82,25 +86,6 @@ io.sockets.on('connection', function(socket) {
 	});
 });
 
-function toRad(val) {
-	return val * Math.PI / 180;
-}
-
-// Calculate distance between 2 coordinates
-function haversineDistance(pos1, pos2) {
-	var R = 6371; // radius of the earth in KM
-
-	var latDiff = toRad(pos2.latitude - pos2.latitude),
-		longDiff = toRad(pos2.longitude - pos1.longitude),
-		haversinLat = Math.pow(Math.sin(latDiff / 2), 2),
-		haversinLong = Math.pow(Math.sin(longDiff / 2), 2);
-
-	var a = haversinLat + (Math.cos(toRad(pos1.latitude)) * Math.cos(toRad(pos2.latitude)) * haversinLong);
-	var c = 2 * Math.asin(Math.sqrt(a));
-
- 	return R * c;
-}
-
 TurfApiApp.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
@@ -109,15 +94,3 @@ TurfApiApp.all('*', function(req, res, next) {
 });
 
 routes(TurfApiApp);
-
-TurfApiApp.get('/api/groups/:id', function(req, res) {
-	var groupId = req.params.id;
-	console.log('get group: ' + groupId);
-	connection.query('SELECT * FROM groups WHERE id = ?', [groupId], function(err, group) {
-		if (!err) {
-			res.json(group);
-		} else {
-			res.json(group);
-		}
-	});
-});
