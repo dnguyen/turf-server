@@ -1,5 +1,6 @@
 var express = require('express'),
 	_ = require('lodash'),
+	chat = require('./chat-server'),
 	database = require('./database'),
 	config = require('./config'),
 	routes = require('./routes/api'),
@@ -11,22 +12,24 @@ TurfApiApp.use(express.json());
 TurfApiApp.use(express.urlencoded());
 
 var server = TurfApiApp.listen(config.port);
-var io = require('socket.io').listen(server);
-var groupChatRooms = { };
+chat(server);
+//var io = require('socket.io').listen(server);
+//var groupChatRooms = { };
 
 
 
-function userExistsInRoom(room, username) {
-	var found = false;
-	_.each(room.users, function(user) {
-		if (user.username === username) {
-			console.log('found user in room');
-			found = true;
-		}
-	});
-	return found;
-}
+// function userExistsInRoom(room, username) {
+// 	var found = false;
+// 	_.each(room.users, function(user) {
+// 		if (user.username === username) {
+// 			console.log('found user in room');
+// 			found = true;
+// 		}
+// 	});
+// 	return found;
+// }
 
+/*
 io.sockets.on('connection', function(socket) {
 	console.log("recv connection event");
 
@@ -44,20 +47,20 @@ io.sockets.on('connection', function(socket) {
 
 		// If there is already a chat room in the map, then just add the user to the room.
 		if (groupChatRooms[data.id]) {
-			/*socket.get('joinedRooms', function(rooms) {
-				if (rooms === null) {
-					console.log(data.username + ' does not have any joined rooms');
-					socket.set('joinedRooms', [], function() {
-						console.log('set joinedRooms for ' + data.username);
-						socket.get('joinedRooms', function(rooms2) {
-							rooms2.push(groupChatRooms[data.id]);
-							console.log('pushed joinedRooms ' + JSON.stringify(rooms2));
-						});
-					});
-				}
-				console.log(data.username + ' is in ' + rooms);
-				console.log(rooms);
-			});*/
+			// socket.get('joinedRooms', function(rooms) {
+			// 	if (rooms === null) {
+			// 		console.log(data.username + ' does not have any joined rooms');
+			// 		socket.set('joinedRooms', [], function() {
+			// 			console.log('set joinedRooms for ' + data.username);
+			// 			socket.get('joinedRooms', function(rooms2) {
+			// 				rooms2.push(groupChatRooms[data.id]);
+			// 				console.log('pushed joinedRooms ' + JSON.stringify(rooms2));
+			// 			});
+			// 		});
+			// 	}
+			// 	console.log(data.username + ' is in ' + rooms);
+			// 	console.log(rooms);
+			// });
 			console.log('found chat room already in map.');
 			// If user is not already in the room, add them. else just send them the group data.
 			if (!userExistsInRoom(groupChatRooms[data.id], newUser.username)) {
@@ -84,7 +87,7 @@ io.sockets.on('connection', function(socket) {
 	socket.on('chat_message', function(data) {
 		console.log('recv chat_message' + data.message);
 	});
-});
+});*/
 
 TurfApiApp.all('*', function(req, res, next) {
   res.header('Access-Control-Allow-Origin', '*');

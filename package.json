@@ -10,7 +10,9 @@
         "bluebird" : "1.0.4",
         "socket.io" : "0.9.16",
         "passport" : "0.2.0",
+	"node-uuid" : "latest",
 	"supertest" : "0.9.0",
-	"should" : "3.1.2"
+	"should" : "3.1.2",
+	"socket.io-client" : "latest"
     }
 }
