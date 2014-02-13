@@ -6,6 +6,76 @@ describe('Routing', function() {
 
 	var url = 'http://localhost:3001';
 
+	describe('Users', function() {
+		it ('POST /api/users Should return error for invalid username or password', function(done) {
+			request(url)
+				.post('/api/users')
+				.expect(400)
+				.end(function(err, res) {
+					done();
+				});
+		});
+
+		it ('POST /api/users Should return 400 for duplicate username', function(done) {
+			request(url)
+				.post('/api/users')
+				.expect(400)
+				.send({
+					username: 'Lithica',
+					password: 'test'
+				})
+				.end(function(Err, res) {
+					done();
+				});
+		});
+
+		describe('Authentication', function() {
+
+			it ('GET /login should return 400 for invalid username but correct password', function(done) {
+				request(url)
+					.get('/login')
+					.expect(400)
+					.send({
+						username: 'Badusername',
+						password: 'test'
+					})
+					.end(function(err, res) {
+						done();
+					});
+			});
+
+			it ('GET /login should return 400 for invalid password but correct username', function(done) {
+				request(url)
+					.get('/login')
+					.expect(400)
+					.send({
+						username: 'Lithica',
+						password: 'badpassword'
+					})
+					.end(function(err, res) {
+						done();
+					});
+			});
+
+			it ('GET /login should return 200 and user data for valid username and password', function(done) {
+				request(url)
+					.get('/login')
+					.expect(200)
+					.send({
+						username: 'lithica',
+						password: 'test'
+					})
+					.end(function(err, res) {
+						res.body.should.have.property('uid');
+						res.body.should.have.property('username');
+						res.body.uid.should.equal('eyANmDM5t');
+						res.body.username.should.equal('Lithica');
+						done();
+					});
+			});
+		});
+	});
+
 	describe('Groups', function() {
 		// Test for trying to get a group with an invalid group id
 		it ('Should return error for invalid group id', function(done) {
@@ -53,10 +123,8 @@ describe('Routing', function() {
 			request(url)
 				.get('/api/validgroups')
 				.send({
-					position: {
-						latitude: 40.81095905,
-						longitude: -77.89322398
-					}
+					latitude: 40.81095905,
+					longitude: -77.89322398
 				})
 				.expect(200)
 				.end(function(err, res) {

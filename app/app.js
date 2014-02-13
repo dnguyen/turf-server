@@ -1,5 +1,6 @@
 var express = require('express'),
 	_ = require('lodash'),
+	passport = require('passport'),
 	chat = require('./chat-server'),
 	database = require('./database'),
 	config = require('./config'),
@@ -8,8 +9,18 @@ var express = require('express'),
 
 database.initialize();
 
-TurfApiApp.use(express.json());
-TurfApiApp.use(express.urlencoded());
+TurfApiApp.configure(function() {
+	TurfApiApp.use(express.logger('dev'));
+	TurfApiApp.use(express.cookieParser());
+	TurfApiApp.use(express.bodyParser());
+	TurfApiApp.use(express.session({ secret: 'SECRET' }));
+	TurfApiApp.use(express.json());
+	TurfApiApp.use(express.urlencoded());
+
+	//TurfApiApp.use(passport.initialize());
+	//TurfApiApp.use(passport.session());
+
+});
 
 var server = TurfApiApp.listen(config.port);
 chat(server);
@@ -96,4 +107,4 @@ TurfApiApp.all('*', function(req, res, next) {
   next();
 });
 
-routes(TurfApiApp);
+routes(TurfApiApp, passport);

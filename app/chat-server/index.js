@@ -14,13 +14,15 @@ module.exports = function(server) {
 		// Client will send server desired username.
 		// Send back a uuid for the client to use
 		socket.on('connect_', function(data) {
+			// When a client connects, hand them a unique id to use for their session.
+			// Add the client to users map. TODO: Add redis to store users and rooms?
+			// Should also verify their username here too.
+			var newuuid = uuid.v4();
+			console.log("Creating uuid: " + newuuid);
 			socket.emit('connect_', {
 				uid: newuuid
 			});
 		});
-		// When a client connects, hand them a unique id to use for their session.
-		var newuuid = uuid.v4();
-		console.log("Creating uuid: " + newuuid);
 
 	});
 };

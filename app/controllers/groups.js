@@ -19,14 +19,14 @@ var GroupsController = {
 
 	getValidGroups: function(req, res) {
 		// Send 400 error code if no position is given.
-		if (typeof req.body.position === 'undefined') {
+		if (typeof req.param('latitude') === 'undefined' || typeof req.param('longitude') === 'undefined') {
 			res.send(400);
 			return;
 		}
 
 		var userPosition = {
-			latitude: req.body.position.latitude,
-			longitude: req.body.position.longitude
+			latitude: req.param('latitude'),
+			longitude: req.param('longitude')
 		};
 		groups.getValidGroups(userPosition).then(function(data) {
 			console.log('Finished getting all valid groups');
