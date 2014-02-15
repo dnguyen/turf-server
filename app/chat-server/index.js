@@ -2,7 +2,8 @@ var _ = require('lodash'),
 	io = require('socket.io');
 	redis = require('../redis-store'),
 	database = require('../database'),
-	Users = require('../models/users');
+	Users = require('../models/users'),
+	Room = require('./room');
 
 module.exports = function(server) {
 	var rooms = [];
@@ -29,9 +30,11 @@ module.exports = function(server) {
 		socket.on('disconnect', function(data) {
 			socket.get('userid', function(err, userid) {
 				if (err) throw err;
-				redis.client.hdel('online_users', userid, function() {
-					console.log('Removed ' + userid + ' from online_users');
-				});
+				if (userid) {
+					redis.client.hdel('online_users', userid, function() {
+						console.log('Removed ' + userid + ' from online_users');
+					});
+				}
 			});
 		});
 

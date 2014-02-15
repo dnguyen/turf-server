@@ -6,6 +6,7 @@ var ApiRoutes = function(app, passport) {
 	app.get('/api/groups/:id', GroupsController.getGroup);
 	app.post('/api/users', UsersController.newUser);
 	app.get('/login', UsersController.login);
+	app.get('/auth', UsersController.auth);
 };
 
 module.exports = ApiRoutes;

@@ -49,5 +49,25 @@ module.exports = {
 			console.log(err);
 			res.send(400, err);
 		});
+	},
+
+	/*
+		Authenticates a user's token
+	*/
+	auth: function(req, res) {
+		if (typeof req.param('uid') === 'undefined' || typeof req.param('token') === 'undefined') {
+			res.send(400);
+			return;
+		}
+
+		Users.auth({
+			uid: req.param('uid'),
+			token: req.param('token')
+		}).then(function() {
+			res.send(200);
+		})
+		.error(function(err) {
+			res.send(400, err);
+		});
 	}
 };

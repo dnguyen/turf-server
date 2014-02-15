@@ -120,5 +120,28 @@ module.exports = {
 		)
 
 		return resolver.promise;
+	},
+
+	/*
+		Makes sure the given token matches with the user id
+	*/
+	auth: function(userData) {
+		var resolver = Promise.defer();
+
+		redis.client.get('user:' + userData.uid, function(err, data) {
+			if (err) throw err;
+			if (data) {
+				var data = JSON.parse(data);
+				if (userData.token === data.token) {
+					resolver.resolve();
+				} else {
+					resolver.reject({ message: 'Invalid token or user id' });
+				}
+			} else {
+				resolver.reject({ message: 'Invalid token or user id' });
+			}
+		});
+
+		return resolver.promise;
 	}
 };
