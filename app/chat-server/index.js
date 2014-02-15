@@ -6,8 +6,6 @@ var _ = require('lodash'),
 	Room = require('./room');
 
 module.exports = function(server) {
-	var rooms = [];
-
 	module.exports.server = server;
 	io = io.listen(server);
 
@@ -36,6 +34,41 @@ module.exports = function(server) {
 					});
 				}
 			});
+		});
+
+		socket.on('join_room', function(data) {
+			console.log('recv: join_room from ' + data.uid);
+			redis.client.hget('rooms', 'room:' + data.groupid, function(err, room) {
+
+				socket.join(data.groupid);
+
+				if (room) {
+					console.log('found room:' + data.groupid + ' in redis');
+					var roomDataObj = JSON.parse(room);
+					// Make sure we don't add duplicate users
+					if (!_.contains(roomDataObj.members, data.uid)) {
+						roomDataObj.attributes.members.push(data.uid);
+						redis.client.hset('rooms', 'room:' + roomDataObj.attributes.id, JSON.stringify(roomDataObj), function() {
+							socket.emit('join_room', roomDataObj);
+							socket.broadcast.to(roomDataObj.attributes.id).emit('user_joined_room', { uid: data.uid} );
+						});
+					}
+
+				} else {
+					console.log('did not find room: ' + data.groupid + ' in redis');
+					// If the room doesn't exist in redis yet, create a new one.
+					var newRoom = new Room({
+						id: data.groupid,
+						members: [],
+						messages: []
+					});
+					newRoom.attributes.members.push(data.uid);
+					redis.client.hset('rooms', 'room:' + newRoom.attributes.id, JSON.stringify(newRoom), function() {});
+					socket.emit('join_room', newRoom);
+					socket.broadcast.to(newRoom.attributes.id).emit('user_joined_room', { uid: data.uid} );
+				}
+			});
+			//redis.client.hset('groups', 'group:' + data.groupid, )
 		});
 
 	});
