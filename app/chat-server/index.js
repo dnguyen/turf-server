@@ -46,12 +46,26 @@ module.exports = function(server) {
 					console.log('found room:' + data.groupid + ' in redis');
 					var roomDataObj = JSON.parse(room);
 					// Make sure we don't add duplicate users
-					if (!_.contains(roomDataObj.members, data.uid)) {
-						roomDataObj.attributes.members.push(data.uid);
-						redis.client.hset('rooms', 'room:' + roomDataObj.attributes.id, JSON.stringify(roomDataObj), function() {
+					var alreadyInRoom = false;
+					_.each(roomDataObj.attributes.members, function(usr) {
+						if (usr.uid === data.uid) {
+							alreadyInRoom = true;
+						}
+					});
+
+					if (!alreadyInRoom) {
+
+						Users.get(data.uid).then(function(user) {
+							roomDataObj.attributes.members.push({
+								uid: data.uid,
+								username: user.username
+							});
+							redis.client.hset('rooms', 'room:' + roomDataObj.attributes.id, JSON.stringify(roomDataObj), function() {});
 							socket.emit('join_room', roomDataObj);
-							socket.broadcast.to(roomDataObj.attributes.id).emit('user_joined_room', { uid: data.uid} );
+							socket.broadcast.to(roomDataObj.attributes.id).emit('user_joined_room', { uid: data.uid, username: user.username } );
 						});
+					} else {
+						socket.emit('join_room', roomDataObj);
 					}
 
 				} else {
@@ -62,13 +76,18 @@ module.exports = function(server) {
 						members: [],
 						messages: []
 					});
-					newRoom.attributes.members.push(data.uid);
-					redis.client.hset('rooms', 'room:' + newRoom.attributes.id, JSON.stringify(newRoom), function() {});
-					socket.emit('join_room', newRoom);
-					socket.broadcast.to(newRoom.attributes.id).emit('user_joined_room', { uid: data.uid} );
+
+					Users.get(data.uid).then(function(user) {
+						newRoom.attributes.members.push({
+							uid: data.uid,
+							username: user.username
+						});
+						redis.client.hset('rooms', 'room:' + newRoom.attributes.id, JSON.stringify(newRoom), function() {});
+						socket.emit('join_room', newRoom);
+						socket.broadcast.to(newRoom.attributes.id).emit('user_joined_room', { uid: data.uid, username: user.username } );
+					});
 				}
 			});
-			//redis.client.hset('groups', 'group:' + data.groupid, )
 		});
 
 	});
