@@ -6,8 +6,8 @@ var Room = function(attributes) {
 
 // Add methods, and other data to rooms prototype.
 _.extend(Room.prototype, {
-	testExtend: function() {
-		console.log('Extend Rooms prototype!');
+	get: function(attribute) {
+		return this.attributes[attribute];
 	}
 });
 

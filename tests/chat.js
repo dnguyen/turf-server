@@ -12,13 +12,12 @@ describe('Chat Socket.io Server', function() {
 
 	var socket;
 	it ('Should connect to server.', function(done) {
-		var client = io.connect(url, options);
+		socket = io.connect(url, options);
 
-		client.on('connect_', function(data) {
-			data.should.have.property('uid');
-			done();
-		});
+		done();
 	});
+
+
 
 	//it ('Should ')
 	// beforeEach(function(done) {

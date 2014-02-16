@@ -42,51 +42,46 @@ module.exports = function(server) {
 
 				socket.join(data.groupid);
 
+				var roomObj,
+					userInRoom = false;
+
+				// If the room hasn't been stored in redis yet, create a new room object to use.
 				if (room) {
-					console.log('found room:' + data.groupid + ' in redis');
-					var roomDataObj = JSON.parse(room);
-					// Make sure we don't add duplicate users
-					var alreadyInRoom = false;
-					_.each(roomDataObj.attributes.members, function(usr) {
-						if (usr.uid === data.uid) {
-							alreadyInRoom = true;
-						}
-					});
-
-					if (!alreadyInRoom) {
-
-						Users.get(data.uid).then(function(user) {
-							roomDataObj.attributes.members.push({
-								uid: data.uid,
-								username: user.username
-							});
-							redis.client.hset('rooms', 'room:' + roomDataObj.attributes.id, JSON.stringify(roomDataObj), function() {});
-							socket.emit('join_room', roomDataObj);
-							socket.broadcast.to(roomDataObj.attributes.id).emit('user_joined_room', { uid: data.uid, username: user.username } );
-						});
-					} else {
-						socket.emit('join_room', roomDataObj);
-					}
-
+					roomObj = JSON.parse(room);
 				} else {
-					console.log('did not find room: ' + data.groupid + ' in redis');
-					// If the room doesn't exist in redis yet, create a new one.
-					var newRoom = new Room({
+					roomObj = new Room({
 						id: data.groupid,
 						members: [],
 						messages: []
 					});
+				}
 
-					Users.get(data.uid).then(function(user) {
-						newRoom.attributes.members.push({
-							uid: data.uid,
-							username: user.username
-						});
-						redis.client.hset('rooms', 'room:' + newRoom.attributes.id, JSON.stringify(newRoom), function() {});
-						socket.emit('join_room', newRoom);
-						socket.broadcast.to(newRoom.attributes.id).emit('user_joined_room', { uid: data.uid, username: user.username } );
+				// Check if the user is already in the room. Only need to check if there members in the room.
+				if (roomObj.attributes.members.length > 0) {
+					_.each(roomObj.attributes.members, function(usr) {
+						if (usr.uid === data.uid) {
+							userInRoom = true;
+						}
 					});
 				}
+
+				// Fetch the users data, add them to the members array, store the updated room data back
+				// into redis and let the client know that they can join the room. Send the client room data.
+				Users.get(data.uid).then(function(user) {
+					roomObj.attributes.members.push({
+						uid: data.uid,
+						username: user.username
+					});
+
+					if (!userInRoom) {
+						redis.client.hset('rooms', 'room:' + roomObj.attributes.id, JSON.stringify(roomObj), function() {});
+						socket.emit('join_room', roomObj);
+						socket.broadcast.to(roomObj.attributes.id).emit('user_joined_room', { uid: data.uid, username: user.username } );
+					} else {
+						socket.emit('join_room', roomObj);
+					}
+				});
+
 			});
 		});
 
