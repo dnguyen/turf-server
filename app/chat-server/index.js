@@ -116,6 +116,8 @@ module.exports = function(server) {
 
 		socket.on('send_message', function(data) {
 			console.log('recv send_message');
+			console.log('sockets in room ' + data.groupid);
+			console.log(io.sockets.clients(data.groupid).length);
 			redis.client.hget('rooms', 'room:' + data.groupid, function(err, room) {
 				if (err) throw err;
 				room = JSON.parse(room);
@@ -132,7 +134,7 @@ module.exports = function(server) {
 					room.attributes.messages.push(newMessage);
 
 					redis.client.hset('rooms', 'room:' + data.groupid, JSON.stringify(room), function() { });
-					socket.in(data.groupid).emit('new_message', newMessage);
+					io.sockets.in(data.groupid).emit('new_message', newMessage);
 				});
 			});
 		});
