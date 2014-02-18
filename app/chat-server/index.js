@@ -114,5 +114,28 @@ module.exports = function(server) {
 			});
 		});
 
+		socket.on('send_message', function(data) {
+			console.log('recv send_message');
+			redis.client.hget('rooms', 'room:' + data.groupid, function(err, room) {
+				if (err) throw err;
+				room = JSON.parse(room);
+
+				Users.get(data.uid).then(function(user) {
+					var newMessage = {
+						user: {
+							uid: user.id,
+							username: user.username
+						},
+						message: data.message
+					};
+
+					room.attributes.messages.push(newMessage);
+
+					redis.client.hset('rooms', 'room:' + data.groupid, JSON.stringify(room), function() { });
+					socket.in(data.groupid).emit('new_message', newMessage);
+				});
+			});
+		});
+
 	});
 };
