@@ -4,6 +4,7 @@ var redis = require('redis'),
 module.exports = {
 	initialize: function() {
 		var client = redis.createClient();
+
 		client.on('error', function(err) {
 			console.log('Redis error: ' + err);
 		});
