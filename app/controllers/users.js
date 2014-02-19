@@ -7,21 +7,26 @@ module.exports = {
 			return;
 		}
 
+		// Insert the user, get the user's data and return it to the client.
 		Users.insert({
 			username : req.param('username'),
 			password : req.param('password')
 		})
-		.then(function(data) {
-			console.log('successful insert');
-			res.send(200);
+		.then(function(userId) {
+			return Users.get(userId);
+		})
+		.then(function(userData) {
+			userData.password = req.param('password');
+			return Users.login(userData);
+		})
+		.then(function(rtrUserData) {
+			res.json(200, rtrUserData);
 		})
 		.error(function(err) {
-			console.log(err);
 			res.json(400, err);
 			return;
 		})
 		.catch(function(err) {
-			console.log('error with insert');
 			res.send(400);
 			return;
 		});

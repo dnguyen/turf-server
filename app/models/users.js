@@ -43,17 +43,20 @@ module.exports = {
 	},
 
 	insert: function(userData) {
-		var resolver = Promise.defer();
+		var resolver = Promise.defer(),
+			that = this;
+
 		// Check if username already exists
 		this.exists(userData.username).then(function(rtr) {
 			if (!rtr) {
+				var genUserId = shortid.generate();
 				database.connection.query(
 					'INSERT INTO users (id, username, password) VALUES (?, ?, ?)',
-					[shortid.generate(), userData.username, bcrypt.hashSync(userData.password, bcrypt.genSaltSync(8), null)],
+					[genUserId, userData.username, bcrypt.hashSync(userData.password, bcrypt.genSaltSync(8), null)],
 					function(err, res) {
 						if (err) throw err;
 
-						resolver.resolve();
+						resolver.resolve(genUserId);
 					}
 				)
 			} else {
