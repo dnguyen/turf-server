@@ -1,6 +1,7 @@
 var Promise = require('bluebird'),
 	_ = require('lodash'),
-	io = require('socket.io');
+	io = require('socket.io'),
+	validator = require('validator'),
 	redis = require('../redis-store'),
 	database = require('../database'),
 	Users = require('../models/users'),
@@ -147,7 +148,7 @@ function handleSendMessage(socket, data) {
 					uid: user.id,
 					username: user.username
 				},
-				message: data.message
+				message: validator.escape(data.message)
 			};
 
 			room.attributes.messages.push(newMessage);

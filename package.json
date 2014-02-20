@@ -14,6 +14,7 @@
     	"bcrypt-nodejs" : "latest",
     	"node-uuid" : "latest",
     	"shortid" : "latest",
+        "validator" : "3.2.1",
     	"supertest" : "0.9.0",
     	"should" : "3.1.2",
     	"socket.io-client" : "latest"
