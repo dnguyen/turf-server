@@ -8,7 +8,7 @@ module.exports = {
 	/*
 		Get's a single group by id
 	*/
-	getGroup: function(id) {
+	get: function(id) {
 		var resolver = Promise.defer();
 
 		database.connection.query('SELECT * FROM groups WHERE id = ?', [id], function(err, group) {
@@ -42,12 +42,17 @@ module.exports = {
 			if (!err) {
 				var validGroups = [];
 				_.forEach(data, function(group) {
-					// TODO: add search radius: distance should be <= radius of the group
-					if (geolocation.distance(position, { latitude: group.latitude, longitude: group.longitude })) {
+					console.log(geolocation.distance(position, { latitude: group.latitude, longitude: group.longitude }) + ' <= ' + group.radius);
+					if (geolocation.distance(position, { latitude: group.latitude, longitude: group.longitude }) <= group.radius) {
 						validGroups.push(group);
 					}
 				});
-				resolver.resolve(validGroups);
+
+				if (validGroups.length > 0) {
+					resolver.resolve(validGroups);
+				} else {
+					resolver.reject('Found no groups');
+				}
 			} else {
 				resolver.reject(err);
 			}
