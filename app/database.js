@@ -1,4 +1,5 @@
 var mysql = require('mysql'),
+    Promise = require('bluebird'),
 	config = require('./config');
 
 module.exports = {
@@ -6,7 +7,7 @@ module.exports = {
         var self = this;
 
         var connection = mysql.createConnection(config.database);
-
+        Promise.promisify(connection);
         // If database is disconnected, reinitialize the database connection.
         connection.on('error', function(err) {
             console.log('DATABASE ERROR: ', err);

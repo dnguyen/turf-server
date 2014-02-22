@@ -1,5 +1,6 @@
 var Promise = require('bluebird'),
 	_ = require('lodash'),
+	shortid = require('shortid'),
 	database = require('../database'),
 	geolocation = require('../utils/geolocation');
 
@@ -28,6 +29,23 @@ module.exports = {
 				});
 			}
 		});
+
+		return resolver.promise;
+	},
+
+	insert: function(data) {
+		var resolver = Promise.defer(),
+			newGroupId = shortid.generate();
+
+		database.connection.query(
+			"INSERT INTO groups (id, name, latitude, longitude, radius, creator, createdat) VALUES (?, ?, ?, ?, ?, ?, ?)",
+			[newGroupId, data.name, data.latitude, data.longitude, data.radius, data.creator, data.createdat],
+			function(err, rsp) {
+				if (err) throw err;
+
+				resolver.resolve(newGroupId);
+			}
+		);
 
 		return resolver.promise;
 	},

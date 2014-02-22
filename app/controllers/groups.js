@@ -1,5 +1,20 @@
-var groups = require('../models/groups'),
+var validator = require('validator'),
+	moment = require('moment'),
+	_ = require('lodash'),
+	groups = require('../models/groups'),
 	geolocation = require('../utils/geolocation');
+
+function checkParamsUndefined(req, params) {
+	var rtrValue = false;
+
+	_.each(params, function(param) {
+		if (typeof req.param(param) === 'undefined') {
+			rtrValue = true;
+		}
+	});
+
+	return rtrValue;
+}
 
 var GroupsController = {
 	getGroup: function(req, res) {
@@ -20,7 +35,7 @@ var GroupsController = {
 
 	getValidGroups: function(req, res) {
 		// Send 400 error code if no position is given.
-		if (typeof req.param('latitude') === 'undefined' || typeof req.param('longitude') === 'undefined') {
+		if (checkParamsUndefined(req, ['latitude', 'longitude'])) {
 			res.send(400);
 			return;
 		}
@@ -74,6 +89,30 @@ var GroupsController = {
 			res.send(400);
 		});
 
+	},
+
+	insertGroup: function(req, res) {
+		if (checkParamsUndefined(req, ['uid', 'name', 'radius'])) {
+			res.send(400);
+			return;
+		}
+
+		var groupData = {
+			name: validator.escape(req.param('name')),
+			latitude: validator.escape(req.param('latitude')),
+			longitude: validator.escape(req.param('longitude')),
+			radius: validator.escape(req.param('radius')),
+			creator: validator.escape(req.param('uid')),
+			createdat: moment().format('YYYY-MM-DD HH:mm:ss')
+		};
+
+		groups.insert(groupData)
+		.then(function(groupId) {
+			res.json(200, { groupid : groupId });
+		})
+		.catch(function(error) {
+			res.send(400);
+		});
 	}
 };
 

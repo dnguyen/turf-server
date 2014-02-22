@@ -3,6 +3,7 @@ var GroupsController = require('../controllers/groups'),
 
 var ApiRoutes = function(app, passport) {
 	app.get('/api/validgroups', GroupsController.getValidGroups);
+	app.post('/api/groups', GroupsController.insertGroup);
 	app.get('/api/groups/:id', GroupsController.getGroup);
 	app.get('/api/groups/:id/valid', GroupsController.validGroup);
 	app.post('/api/users', UsersController.newUser);
