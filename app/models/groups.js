@@ -2,6 +2,7 @@ var Promise = require('bluebird'),
 	_ = require('lodash'),
 	shortid = require('shortid'),
 	database = require('../database'),
+	redis = require('../redis-store'),
 	geolocation = require('../utils/geolocation');
 
 module.exports = {
@@ -10,24 +11,30 @@ module.exports = {
 		Get's a single group by id
 	*/
 	get: function(id) {
-		var resolver = Promise.defer();
+		var resolver = Promise.defer(),
+			groupObj;
 
-		database.connection.query('SELECT * FROM groups WHERE id = ?', [id], function(err, group) {
-			if (!err) {
-				if (group.length > 0) {
-					resolver.resolve(group[0]);
-				} else {
-					resolver.reject({
-						error: true,
-						message: 'Group with that id does not exist'
-					});
-				}
+		database.query('SELECT * FROM groups where id = ?', [id])
+		.then(function(group) {
+			if (group.length > 0) {
+				groupObj = group[0];
+				return redis.client.hgetAsync('rooms', 'room:' + groupObj.id);
 			} else {
 				resolver.reject({
-					error: true,
-					message: 'Query failed'
+					message: 'Group with that id does not exist'
 				});
 			}
+		})
+		.then(function(roomJson) {
+			var roomObj = JSON.parse(roomJson);
+			groupObj.members = roomObj.attributes.members;
+			console.log(groupObj);
+			resolver.resolve(groupObj);
+		})
+		.catch(function(err) {
+			resolver.reject({
+				message: 'Query failed'
+			});
 		});
 
 		return resolver.promise;

@@ -7,7 +7,7 @@ module.exports = {
         var self = this;
 
         var connection = mysql.createConnection(config.database);
-        Promise.promisify(connection);
+
         // If database is disconnected, reinitialize the database connection.
         connection.on('error', function(err) {
             console.log('DATABASE ERROR: ', err);
@@ -19,5 +19,17 @@ module.exports = {
         });
 
         module.exports.connection = connection;
-	}
+	},
+
+    // Wrapper query function so we can use promises instead of callbacks.
+    query: function(query, values) {
+        var resolver = Promise.defer();
+
+        module.exports.connection.query(query, values, function(err, data) {
+            if (err) throw err;
+            resolver.resolve(data);
+        });
+
+        return resolver.promise;
+    }
 };

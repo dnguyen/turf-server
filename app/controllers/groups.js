@@ -28,7 +28,7 @@ var GroupsController = {
 			console.log('Got group ' + groupId);
 			res.json(200, data);
 		}).catch(function(err) {
-			res.send(400);
+			res.send(400, err);
 			return;
 		});
 	},
@@ -94,6 +94,16 @@ var GroupsController = {
 	insertGroup: function(req, res) {
 		if (checkParamsUndefined(req, ['uid', 'name', 'radius'])) {
 			res.send(400);
+			return;
+		}
+
+		if (req.param('name').length > 50) {
+			res.json(400, { message: 'Group name must be 50 characters or less.' });
+			return;
+		}
+
+		if (!validator.isNumeric(req.param('radius')) || parseInt(req.param('radius')) <= 0) {
+			res.json(400, { message: 'Radius must greater than 0. '});
 			return;
 		}
 
